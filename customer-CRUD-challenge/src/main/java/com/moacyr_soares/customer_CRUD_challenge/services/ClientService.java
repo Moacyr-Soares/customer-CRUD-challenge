@@ -2,8 +2,9 @@ package com.moacyr_soares.customer_CRUD_challenge.services;
 
 import com.moacyr_soares.customer_CRUD_challenge.dto.ClientDTO;
 import com.moacyr_soares.customer_CRUD_challenge.entities.Client;
-import com.moacyr_soares.customer_CRUD_challenge.exceptions.ResourceNotFoundException;
+import com.moacyr_soares.customer_CRUD_challenge.services.exceptions.ResourceNotFoundException;
 import com.moacyr_soares.customer_CRUD_challenge.repositories.ClientRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +19,7 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientDTO findById(Long id){
-
         Client client = repository.findById(id).orElseThrow(
-
                 ()-> new ResourceNotFoundException("Recurso não encontrado"));
         return new ClientDTO(client);
     }
@@ -35,15 +34,29 @@ public class ClientService {
     @Transactional
     public ClientDTO insert(ClientDTO dto){
         Client entity = new Client();
-        entity.setName(dto.getName());
-        entity.setCpf(dto.getCpf());
-        entity.setIncome(dto.getIncome());
-        entity.setBirthDate(dto.getBirthDate());
-        entity.setChildren(dto.getChildren());
+        copyDtoToEntity(dto, entity);
         entity =repository.save(entity);
         ClientDTO clientDTO = new ClientDTO(entity);
         return clientDTO;
     }
 
+    @Transactional
+    public ClientDTO update(Long id, ClientDTO dto) {
+        try {
+            Client entity = this.repository.getReferenceById(id);
+            copyDtoToEntity(dto, entity);
+            return new ClientDTO(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+    }
 
+    private void copyDtoToEntity(ClientDTO dto, Client entity) {
+
+        entity.setName(dto.getName());
+        entity.setCpf(dto.getCpf());
+        entity.setIncome(dto.getIncome());
+        entity.setBirthDate(dto.getBirthDate());
+        entity.setChildren(dto.getChildren());
+    }
 }
