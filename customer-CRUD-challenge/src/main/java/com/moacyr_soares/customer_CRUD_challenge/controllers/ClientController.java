@@ -1,10 +1,7 @@
 package com.moacyr_soares.customer_CRUD_challenge.controllers;
 
-
 import com.moacyr_soares.customer_CRUD_challenge.dto.ClientDTO;
 import com.moacyr_soares.customer_CRUD_challenge.services.ClientService;
-
-
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -46,6 +43,13 @@ public class ClientController {
     public ResponseEntity<ClientDTO> update(@PathVariable Long id,@Valid @RequestBody ClientDTO dto){
         dto = service.update(id,dto);
         return ResponseEntity.ok(dto);
+    }
+
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id){
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
 
