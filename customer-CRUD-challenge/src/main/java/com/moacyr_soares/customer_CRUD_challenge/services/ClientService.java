@@ -2,17 +2,17 @@ package com.moacyr_soares.customer_CRUD_challenge.services;
 
 import com.moacyr_soares.customer_CRUD_challenge.dto.ClientDTO;
 import com.moacyr_soares.customer_CRUD_challenge.entities.Client;
+import com.moacyr_soares.customer_CRUD_challenge.services.exceptions.DatabaseException;
 import com.moacyr_soares.customer_CRUD_challenge.services.exceptions.ResourceNotFoundException;
 import com.moacyr_soares.customer_CRUD_challenge.repositories.ClientRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @Service
 public class ClientService {
@@ -54,13 +54,18 @@ public class ClientService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void delete(Long id){
-        repository.deleteById(id);
-
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+        try {
+            repository.deleteById(id);
+        }
+        catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Falha de integridade referencial");
+        }
     }
-
-
 
     private void copyDtoToEntity(ClientDTO dto, Client entity) {
 
